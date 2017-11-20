@@ -1,8 +1,8 @@
 #pragma once
 #include <string>
 #include <iostream>
-//#include "afxwin.h"
-//#include "afxmt.h"
+#include "afxwin.h"
+#include "afxmt.h"
 
 #if defined(UNICODE) || defined(_UNICODE)
 #define _tcout std::wcout
@@ -16,16 +16,18 @@ typedef std::basic_string<TCHAR> _tstring;
 
 using namespace std;
 
+class ReadingKeyboardThread :
+	public CWinThread
+{
+public:
+	ReadingKeyboardThread(CEvent * ptrStopEvent, CEvent * ptrCommandGot);
+	virtual ~ReadingKeyboardThread(void);
+	virtual int Run(void);
+	virtual BOOL InitInstance() { return TRUE; }
 
-//class ReadingKeyboardThread :
-//	public CWinThread
-//{
-//public:
-//	ReadingKeyboardThread(CEvent * ptrStopEvent);
-//	virtual ~ReadingKeyboardThread(void);
-//	virtual int Run(void);
-//	virtual BOOL InitInstance() { return TRUE; }
-//
-//private:
-//	CEvent * ptrStopEvent;
-//};
+private:
+	CEvent * ptrStopEvent; 
+	CEvent * ptrCommandGot;
+	CEvent * ptrCommandProcessed;
+};
+
