@@ -1,2 +1,5 @@
 ﻿  SendingThread.cpp
+  ReadingKeyboardThread.cpp
+e:\hubic\dev tallinn\repo\iag0010objplantlogger\iag0010objplantlogger\readingkeyboardthread.cpp(20): warning C4101: 'WaitResult': unreferenced local variable
+  Generating Code...
   IAG0010ObjPlantLogger.vcxproj -> E:\hubiC\Dev Tallinn\Repo\IAG0010ObjPlantLogger\Debug\IAG0010ObjPlantLogger.exe

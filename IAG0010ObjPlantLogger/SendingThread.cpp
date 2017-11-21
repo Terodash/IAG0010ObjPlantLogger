@@ -13,7 +13,6 @@ SendingThread::SendingThread(ClientSocket* ptrClientSocket, CEvent* ptrDataRecvE
 	ptrDataRecvEvents[1] = ptrDataRecvEvent;
 	ptrDataRecvLock = new CMultiLock(ptrDataRecvEvents, 2);
 
-
 	firstSending = true;
 }
 
@@ -34,15 +33,26 @@ int SendingThread::Run(void)
 
 	while (true) {
 
+		//Si la commande précedemment envoyée est "Ready", on continue à l'envoyer
 		if (!_tcscmp(SentCommand, _T("Ready"))) {
 			ptrCommandGot->SetEvent();
 		}
+		
+		//Si la commande précedemment envoyée est "Start", on envoie maintenant "Ready"
+		else if (!_tcscmp(SentCommand, _T("Start"))) {
+			_tcscpy_s(CommandBuf, _T("Ready"));
+			ptrCommandGot->SetEvent();
+		}
 
+		//En attente de l'évènement "ptrDataRecvEvent" ou "ptrStopEvent"
+		//ptrDataRecvEvent est signalé dés qu'un paquet est reçu de la part de l'emulateur
 		if ((lockResult = ptrDataRecvLock->Lock(INFINITE, false)) == -1) {
 			_tcout << "WSAWaitForMultipleEvents() failed for packetReceivedEvents in sendingDataThread" << endl;
 			return 1;
 		}
-
+		
+		//En attente de l'évènement "ptrCommandGot" ou "ptrStopEvent"
+		//ptrCommandGot est signalé dés qu'une commande valide est entrée au clavier
 		if ((lockResult = ptrCommandEventsLock->Lock(INFINITE, false)) == -1) {
 			_tcout << "WSAWaitForMultipleEvents() failed for packetReceivedEvents in sendingDataThread" << endl;
 			return 1;
@@ -52,13 +62,16 @@ int SendingThread::Run(void)
 			return 0; // stopEvent raised
 
 
+		//Si l'utilisateur a rentré l'une de ces commandes, on copie CommandBuf dans SentCommand. C'est SentCommand qui sera envoyé à l'émulateur.
 		if (!_tcscmp(CommandBuf, _T("Start")) || !_tcscmp(CommandBuf, _T("Ready")) || !_tcscmp(CommandBuf, _T("coursework"))) {
 			_tcscpy_s(SentCommand, CommandBuf);
 		}
 
+		//Dans tous les cas, on envoie à l'émulateur le contenu de SentCommand. Peut être à modifier dans le cas de "Stop".
 		ptrClientSocket->setSendMessage(SentCommand, (wcslen(SentCommand) + 1) * sizeof(_TCHAR));
 
-		if (ptrClientSocket->send() == 1) { //sends a packet
+		//Envoi des paquets
+		if (ptrClientSocket->send() == 1) { 
 			_tcout << "ptrClientSocket->send() failed in SendingThread" << endl;
 			return 1;
 		}
@@ -69,52 +82,10 @@ int SendingThread::Run(void)
 		}
 
 		// Events management and synchronization
-		ptrDataRecvEvent->ResetEvent();
-		ptrDataSentEvent->SetEvent();
-		ptrCommandGot->ResetEvent();
+		ptrDataRecvEvent->ResetEvent(); //Une fois que le paquet est envoyé, on attend de recevoir une réponse.
+		ptrDataSentEvent->SetEvent();//On prévient ReceivingThread qu'on a envoyé un paquet. 
+		ptrCommandGot->ResetEvent();//Une fois un paquet envoyé, on considère qu'on attend une nouvelle commande à envoyer.
 
-		//if (firstSending){
-		//	//ptrClientSocket->setSendMessage(_T("Start"), 6 * sizeof(_TCHAR));
-		//	wcscpy_s(SentCommand, _T("Start"));
-		//	firstSending = false;
-		//}
-		//else
-		//	//ptrClientSocket->setSendMessage(_T("Ready"), 6 * sizeof(_TCHAR));
-		//	wcscpy_s(SentCommand, _T("Ready"));
-
-
-
-		//wcscpy_s(SentCommand, _T("Start"));
-		
-		////////////////////////////////////////////
-		//if (!_tcsicmp(SentCommand, _T("Start"))) {
-		//	_tcout << "Starting to send..." << endl;
-		//	ptrClientSocket->setSendMessage(_T("Start"), 6 * sizeof(_TCHAR));
-		//	//ptrCommandProcessed->SetEvent();
-		//	ptrDataSentEvent->SetEvent();
-		//	wcscpy_s(SentCommand, _T("Ready"));
-		//}
-		//else if (!_tcsicmp(SentCommand, _T("Ready"))) {
-		//	_tcout << "Asking for next packet..." << endl;
-		//	ptrClientSocket->setSendMessage(_T("Ready"), 6 * sizeof(_TCHAR));
-		//	//ptrCommandProcessed->SetEvent();
-		//	ptrDataSentEvent->SetEvent();
-		//}
-
-		//else _tcout << "Command not recognized." << endl;
-		//
-		//std::wcout << L"SentCommand from send : " << SentCommand << '\n';
-		/////////////////////////////////////////////
-
-		// Executed only the first time.
-		/*if (firstSending) {
-			_tcout << "Sending password... \n" << endl;
-			ptrClientSocket->setSendMessage(_T("coursework"), 11 * sizeof(_TCHAR));
-			ptrDataSentEvent->SetEvent();
-			wcscpy_s(SentCommand, _T("Start"));
-
-			firstSending = false;
-		}*/
 	}
 
 	return 0;
