@@ -18,6 +18,7 @@ public:
 	ClientSocket(CEvent* ptrStopEvent, BOOL* ptrDownloadingCompleted);
 	~ClientSocket(void);
 	int openConnection(void);
+	SOCKET getSocket(void);
 	int recv(void);
 	char* getRecvMessage(void);
 	void setSendMessage(_TCHAR*, int);

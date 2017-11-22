@@ -44,7 +44,7 @@ int ClientSocket::openConnection(void) {
 
 								// Creation of the client socket
 	if ((clientSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET) {
-		_tprintf(_T("socket() failed, error %d\n"), WSAGetLastError());
+		_tcout << "socket() failed, error " <<  WSAGetLastError();
 		return 1;
 	}
 	// Description of server socket
@@ -55,7 +55,7 @@ int ClientSocket::openConnection(void) {
 
 	// Connection of client to server
 	if (connect(clientSocket, (SOCKADDR *)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR) {
-		_tprintf(_T("Unable to connect client to server, error %d\n"), WSAGetLastError());
+		_tcout << "Unable to connect client to server, error " <<  WSAGetLastError();
 		return 1;
 	}
 

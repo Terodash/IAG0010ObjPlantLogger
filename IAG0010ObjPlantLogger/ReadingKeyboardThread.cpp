@@ -2,11 +2,11 @@
 #include "ReadingKeyboardThread.h"
 #include "common.h"
 
-TCHAR CommandBuf[81];
 HANDLE KeyboardEvents[2];
 	
-ReadingKeyboardThread::ReadingKeyboardThread(CEvent* ptrStopEvent, CEvent* ptrCommandGot): ptrStopEvent(ptrStopEvent), ptrCommandGot(ptrCommandGot)
+ReadingKeyboardThread::ReadingKeyboardThread(CEvent* ptrStopEvent, CEvent* ptrCommandGot, TCHAR* CommandBuffer): ptrStopEvent(ptrStopEvent), ptrCommandGot(ptrCommandGot)
 {
+	CommandBuf = CommandBuffer;
 }
 
 
@@ -23,7 +23,7 @@ int ReadingKeyboardThread::Run(void)
 
 		
 			if (!ReadConsole(GetStdHandle(STD_INPUT_HANDLE), CommandBuf, 80, &nReadChars, NULL)) {
-				_tprintf(_T("ReadConsole() failed, error %d\n"), GetLastError());
+				_tcout << "ReadConsole() failed, error " <<  GetLastError();
 				return 1;
 			}
 			CommandBuf[nReadChars - 2] = 0; // to get rid of \r\n
