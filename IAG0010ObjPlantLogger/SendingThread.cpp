@@ -2,6 +2,7 @@
 #include "SendingThread.h"
 #include "common.h"
 
+
 SendingThread::SendingThread(ClientSocket* ptrClientSocket, CEvent* ptrDataRecvEvent, CEvent* ptrDataSentEvent, CEvent* ptrStopEvent, CEvent* ptrCommandGot, CEvent* ptrCommandProcessed) :
 	ptrClientSocket(ptrClientSocket), ptrDataRecvEvent(ptrDataRecvEvent), ptrDataSentEvent(ptrDataSentEvent), ptrStopEvent(ptrStopEvent), ptrCommandGot(ptrCommandGot), ptrCommandProcessed(ptrCommandProcessed)
 {
@@ -25,6 +26,7 @@ int SendingThread::Run(void)
 {
 	DWORD lockResult;
 	TCHAR SentCommand[81];
+	receivingDataToWrite = 0;
 	int validCommand = 0;
 	ptrCommandGot->SetEvent();
 	//ptrCommandProcessed->ResetEvent();
@@ -57,6 +59,7 @@ int SendingThread::Run(void)
 			return 0; // stopEvent signaled
 
 		ptrCommandGot->ResetEvent();
+		receivingDataToWrite = 0;
 
 		if (!_tcscmp(CommandBuf, _T("coursework"))) {
 			//_tcscpy_s(SentCommand, CommandBuf);+
@@ -70,6 +73,7 @@ int SendingThread::Run(void)
 		else if (!_tcscmp(CommandBuf, _T("start"))) {
 			//_tcout << "Command start sent..." << endl;
 			wcscpy_s(CommandBuf, _T("Start"));
+			receivingDataToWrite = 1;
 			ptrCommandProcessed->SetEvent();
 			ptrDataRecvEvent->ResetEvent();
 			ptrDataSentEvent->SetEvent();
@@ -80,6 +84,7 @@ int SendingThread::Run(void)
 		else if (!_tcscmp(CommandBuf, _T("ready"))) {
 			//_tcout << "Command ready sent..." << endl;
 			wcscpy_s(CommandBuf, _T("Ready"));
+			receivingDataToWrite = 1;
 			ptrCommandProcessed->SetEvent();
 			ptrDataRecvEvent->ResetEvent();
 			ptrDataSentEvent->SetEvent();

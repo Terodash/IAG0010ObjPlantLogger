@@ -21,6 +21,7 @@ public:
 	int recv(void);
 	char* getRecvMessage(void);
 	void setSendMessage(_TCHAR*, int);
+	SOCKET getReceivedBytes() { return nReceivedBytes; }
 	int send(void);
 	void closeConnection(void);
 private:

@@ -1,2 +1,3 @@
-﻿  SendingThread.cpp
+﻿  ReceivingThread.cpp
+e:\hubic\dev tallinn\repo\iag0010objplantlogger - copie\iag0010objplantlogger\receivingthread.cpp(135): warning C4551: function call missing argument list
   IAG0010ObjPlantLogger.vcxproj -> E:\hubiC\Dev Tallinn\Repo\IAG0010ObjPlantLogger - Copie\Debug\IAG0010ObjPlantLogger.exe

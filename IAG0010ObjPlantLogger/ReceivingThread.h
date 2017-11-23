@@ -19,7 +19,7 @@ public:
 	virtual ~ReceivingThread(void);
 	virtual int Run(void);
 	virtual BOOL InitInstance() { return TRUE; }
-	void helloProcessing(void);
+	int writeToFile(char *dataToWrite);
 	void fileProcessing(void);
 
 private:
