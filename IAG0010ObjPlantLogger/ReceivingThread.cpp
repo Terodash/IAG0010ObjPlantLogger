@@ -2,8 +2,8 @@
 #include "ReceivingThread.h"
 
 
-ReceivingThread::ReceivingThread(ClientSocket* ptrClientSocket, CEvent* ptrDataRecvEvent, CEvent* ptrDataSentEvent, CEvent* ptrStopEvent, BOOL* ptrDownloadingCompleted, HANDLE* ptrFile) :
-	ptrClientSocket(ptrClientSocket), ptrDataRecvEvent(ptrDataRecvEvent), ptrDataSentEvent(ptrDataSentEvent), ptrStopEvent(ptrStopEvent), ptrDownloadingCompleted(ptrDownloadingCompleted), ptrFile(ptrFile)
+ReceivingThread::ReceivingThread(ClientSocket* ptrClientSocket, CEvent* ptrDataRecvEvent, CEvent* ptrDataSentEvent, CEvent* ptrStopEvent, HANDLE* ptrFile) :
+	ptrClientSocket(ptrClientSocket), ptrDataRecvEvent(ptrDataRecvEvent), ptrDataSentEvent(ptrDataSentEvent), ptrStopEvent(ptrStopEvent), ptrFile(ptrFile)
 {
 	ptrDataSentEvents[0] = ptrStopEvent;
 	ptrDataSentEvents[1] = ptrDataSentEvent;
@@ -21,7 +21,8 @@ int ReceivingThread::Run(void)
 	DWORD lockResult;
 	int recvResult;
 
-	while (!*ptrDownloadingCompleted)
+	//while (TRUE)???
+	while (TRUE)
 	{
 
 		// We wait that sending message complete
@@ -45,9 +46,9 @@ int ReceivingThread::Run(void)
 		ptrDataRecvEvent->SetEvent();
 
 		// Executed only the first time.
-		if (firstRecv) { helloProcessing(); }
+		//if (firstRecv) { helloProcessing(); }
 		// Main processing.
-		else { fileProcessing(); }
+		fileProcessing(); 
 		//else { helloProcessing(); }
 	}
 	return 0;

@@ -15,7 +15,7 @@ class SendingThread :
 	public CWinThread
 {
 public:
-	SendingThread(ClientSocket* ptrClientSocket, CEvent* ptrDataRecvEvent, CEvent* ptrDataSentEvent, CEvent* ptrStopEvent, CEvent* ptrCommandGot, BOOL* ptrDownloadingCompleted);
+	SendingThread(ClientSocket* ptrClientSocket, CEvent* ptrDataRecvEvent, CEvent* ptrDataSentEvent, CEvent* ptrStopEvent, CEvent* ptrCommandGot, CEvent* ptrCommandProcessed);
 	virtual ~SendingThread(void);
 	virtual int Run(void);
 	virtual BOOL InitInstance() { return TRUE; }
@@ -31,7 +31,6 @@ private:
 	CSyncObject* ptrDataRecvEvents[2];
 	CMultiLock* ptrDataRecvLock;
 	CMultiLock* ptrCommandEventsLock;
-	BOOL* ptrDownloadingCompleted; // This variable indicate if the downloading has completed.
 	BOOL firstSending;
 };
 

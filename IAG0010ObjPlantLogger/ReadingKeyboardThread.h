@@ -20,7 +20,7 @@ class ReadingKeyboardThread :
 	public CWinThread
 {
 public:
-	ReadingKeyboardThread(CEvent * ptrStopEvent, CEvent * ptrCommandGot);
+	ReadingKeyboardThread(CEvent * ptrStopEvent, CEvent * ptrCommandGot, CEvent * ptrCommandProcessed);
 	virtual ~ReadingKeyboardThread(void);
 	virtual int Run(void);
 	virtual BOOL InitInstance() { return TRUE; }

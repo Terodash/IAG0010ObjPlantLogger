@@ -15,7 +15,7 @@ using namespace std;
 class ClientSocket
 {
 public:
-	ClientSocket(CEvent* ptrStopEvent, BOOL* ptrDownloadingCompleted);
+	ClientSocket(CEvent* ptrStopEvent, CEvent *ptrDataSendEvent);
 	~ClientSocket(void);
 	int openConnection(void);
 	int recv(void);
@@ -23,7 +23,6 @@ public:
 	void setSendMessage(_TCHAR*, int);
 	int send(void);
 	void closeConnection(void);
-	BOOL getDownloadingCompleted(void);
 private:
 	SOCKET clientSocket; // Socket connected with the server
 	CEvent* ptrStopEvent;
@@ -44,5 +43,4 @@ private:
 	WSABUF* ptrSendDataBuffer;
 	char recvMessage[2048];
 	char sendMessage[44];
-	BOOL* ptrDownloadingCompleted;
 };

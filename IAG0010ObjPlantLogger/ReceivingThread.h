@@ -15,7 +15,7 @@ class ReceivingThread :
 	public CWinThread
 {
 public:
-	ReceivingThread(ClientSocket* ptrClientSocket, CEvent* ptrDataRecvEvent, CEvent* ptrDataSentEvent, CEvent* ptrStopEvent, BOOL* ptrDownloadingCompleted, HANDLE* ptrFile);
+	ReceivingThread(ClientSocket* ptrClientSocket, CEvent* ptrDataRecvEvent, CEvent* ptrDataSentEvent, CEvent* ptrStopEvent, HANDLE* ptrFile);
 	virtual ~ReceivingThread(void);
 	virtual int Run(void);
 	virtual BOOL InitInstance() { return TRUE; }
@@ -32,7 +32,6 @@ private:
 	//std::ofstream * fichier;
 	HANDLE* ptrFile;
 	DWORD nWrittenBytes;
-	BOOL* ptrDownloadingCompleted; // This variable indicate if the downloading has completed.
 	BOOL firstRecv;
 };
 

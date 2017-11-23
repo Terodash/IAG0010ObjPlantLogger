@@ -4,7 +4,7 @@
 
 int size_hex = 0;
 
-ClientSocket::ClientSocket(CEvent* ptrStopEvent, BOOL* ptrDownloadingCompleted) : ptrStopEvent(ptrStopEvent), ptrDownloadingCompleted(ptrDownloadingCompleted) {
+ClientSocket::ClientSocket(CEvent* ptrStopEvent, CEvent* ptrDataSentEvent) : ptrStopEvent(ptrStopEvent), ptrDataSentEvent(ptrDataSentEvent){
 	ptrRecvOverlapped = new WSAOVERLAPPED();
 	ptrSendOverlapped = new WSAOVERLAPPED();
 	ptrWSARecvCompletedEvents[0] = ptrStopEvent;
@@ -79,11 +79,6 @@ int ClientSocket::recv(void) {
 			_tcout << "ptrWSARecvLock->Lock() failed for ptrWSArecvCompletedEvents" << endl;
 			return 1;
 		}
-		//if (lockResult == WAIT_TIMEOUT) {// No more data.
-		//	_tcout << "No more data. All packets have been received." << endl;
-		//	*ptrDownloadingCompleted = true;
-		//	return 2; // Waiting stop because the time was out.
-		//}
 		if (lockResult == WAIT_OBJECT_0) // stopEvent has become signaled
 			return 2;
 		if (!WSAGetOverlappedResult(clientSocket, ptrRecvOverlapped, &nReceivedBytes, FALSE, &receiveFlags)) {
@@ -118,7 +113,7 @@ void ClientSocket::setSendMessage(_TCHAR* message, int lenght) {
 	memcpy(&sendMessage[4], (char *)message, lenght);
 		
 	ptrSendDataBuffer->len = lenght + 4;
-	std::wcout << L"Sending: : " << message << '\n';
+	_tcout << "\nSending : " << message << "\n" << endl;
 }
 
 int ClientSocket::send(void) {
@@ -132,9 +127,14 @@ int ClientSocket::send(void) {
 	}*/
 	////////////////////////
 	//ptrDataSentEvent->ResetEvent();
-
+	
 	if (WSASend(clientSocket, ptrSendDataBuffer, 1, &nSentBytes, sendFlags, ptrSendOverlapped, NULL) == SOCKET_ERROR)
 	{
+		if (ptrDataSentEvent->Lock(INFINITE) == -1) {
+			_tcout << "WSAWaitForMultipleEvents() failed for ptrDataSentEvent in ClientSocket" << endl;
+			return 1;
+		}
+
 		if ((error = WSAGetLastError()) != WSA_IO_PENDING) {
 			_tcout << "WSASend() failed, error " << error << endl;
 			return 1;
@@ -163,7 +163,8 @@ int ClientSocket::send(void) {
 		_tcout << "ResetEvent() failed for ptrWSASendCompletedEvents[1]." << endl;
 		return 1;
 	}
-	_tcout << nReceivedBytes << " bytes received" << endl;
+	//_tc<ut << nReceivedBytes << " bytes received" << endl;
+	ptrDataSentEvent->ResetEvent();
 	return 0;
 }
 
