@@ -28,7 +28,7 @@ int ReceivingThread::Run() {
 	// Initialization of the written file
 	//
 	DWORD nBytesToWrite, nBytesWritten = 0, nBytesToRead, nReadBytes = 0;
-	BYTE *pBuffer;
+	//BYTE *pBuffer;
 	file = CreateFile(output_file, GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (file == INVALID_HANDLE_VALUE) //gestion des erreurs
@@ -39,7 +39,7 @@ int ReceivingThread::Run() {
 	// Receiving loop
 	//
 	while (TRUE) {
-		Result = WSARecv(ptrClientSocket->getSocket, &DataBuf, 1, &nReceivedBytes, &ReceiveFlags, &Overlapped, NULL);
+		Result = WSARecv(ptrClientSocket->getSocket(), &DataBuf, 1, &nReceivedBytes, &ReceiveFlags, &Overlapped, NULL);
 		if (Result == SOCKET_ERROR) {
 
 			if (Error = WSAGetLastError() != WSA_IO_PENDING) {// Unable to continue
@@ -56,7 +56,7 @@ int ReceivingThread::Run() {
 			case WAIT_OBJECT_0 + 1: //Overlapped.hEvent signaled, received operation is over
 				WSAResetEvent(NetEvents[1]); //To be ready for the next data package
 
-				if (WSAGetOverlappedResult(ptrClientSocket->getSocket, &Overlapped, &nReceivedBytes, FALSE, &ReceiveFlags)) {
+				if (WSAGetOverlappedResult(ptrClientSocket->getSocket(), &Overlapped, &nReceivedBytes, FALSE, &ReceiveFlags)) {
 					printf("Message received from emulator:\n");
 					int i = 0;
 
@@ -73,7 +73,7 @@ int ReceivingThread::Run() {
 						DataPointer = (wchar_t*)(DataBuf.buf + 4);
 
 						if (!wcscmp(DataPointer, identifier)) //We have received an identification request from the Emulator
-							ptrSendPassword->SetEvent;
+							ptrSendPassword->SetEvent();
 
 						if (!wcscmp(DataPointer, accepted)) //Good password
 							*ptrConnected = TRUE;
@@ -205,13 +205,13 @@ void ReceivingThread::fileProcessing(char* data) {
 	char dataToWrite[2048]; //data that needs to be written in the file
 
 	time_t timeNow = time(NULL);
-	struct tm *t = localtime(&timeNow);
+	struct tm t;
+	localtime_s(&t, &timeNow);
 	char currentTime[2048];
-	sprintf(currentTime, "Measurements at %d-%02d-%02d %02d:%02d:%02d \n",
-		t->tm_year + 1900, t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+	sprintf_s(currentTime, "Measurements at %d-%02d-%02d %02d:%02d:%02d \n", t.tm_year + 1900, t.tm_mon, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
 	printf(currentTime);
-	strcpy(dataToWrite, currentTime);	//we copy the strings about time to the data needed to be written in the file
-	strcat(dataToWrite, "\n");			//and concatenate a \n for a proper presentation
+	strcpy_s(dataToWrite, currentTime);	//we copy the strings about time to the data needed to be written in the file
+	strcat_s(dataToWrite, "\n");			//and concatenate a \n for a proper presentation
 	writeToFile(dataToWrite, file); //data is written to our file
 
 	for (int i = 0; i < channels_number; i++) { //we repeat the procedure for each channel
@@ -222,19 +222,19 @@ void ReceivingThread::fileProcessing(char* data) {
 		cout << "\nNumber of measurement points for the active channel: " <<  pointsNumber;
 
 		char channelName[2048]; //name of the active channel
-		memccpy(channelName, data + position, '\0', 20);
+		_memccpy(channelName, data + position, '\0', 20);
 		printf("Channel name: %s\n", channelName);
-		strcpy(dataToWrite, channelName);
-		strcat(dataToWrite, ":\n");
+		strcpy_s(dataToWrite, channelName);
+		strcat_s(dataToWrite, ":\n");
 		writeToFile(dataToWrite, file);
 		position = position + strlen(channelName) + 1;
 
 		for (int j = 0; j < pointsNumber; j++) { //we repeat the procedure for each point
 			char pointName[2048]; //name of the active point
-			memccpy(pointName, data + position, '\0', 35);
+			_memccpy(pointName, data + position, '\0', 35);
 			printf("  %s", pointName);
-			strcpy(dataToWrite, pointName);
-			strcat(dataToWrite, ": ");
+			strcpy_s(dataToWrite, pointName);
+			strcat_s(dataToWrite, ": ");
 			writeToFile(dataToWrite, file);
 			position = position + strlen(pointName) + 1;
 
@@ -248,8 +248,8 @@ void ReceivingThread::fileProcessing(char* data) {
 				memcpy(&measurement, data + position, sizeof(double));
 				position = position + sizeof(double);
 				_tcout << " :"<< measurement <<"m^3/s\n"; //Symbole 252 à afficher // %.7f 
-				sprintf(stringMeasurements, "%.7f m³/s\n", measurement);
-				strcpy(dataToWrite, stringMeasurements);
+				sprintf_s(stringMeasurements, "%.7f m³/s\n", measurement);
+				strcpy_s(dataToWrite, stringMeasurements);
 				writeToFile(dataToWrite, file);
 			}
 			else if (!strcmp(pointName, "Input solution temperature") ||
@@ -258,8 +258,8 @@ void ReceivingThread::fileProcessing(char* data) {
 				memcpy(&measurement, data + position, sizeof(double));
 				position = position + sizeof(double);
 				_tcout <<" : "<< measurement << "C\n"; //symbole 248 à afficher %c // format  %.6f 
-				sprintf(stringMeasurements, "%.6f °C\n", measurement);
-				strcpy(dataToWrite, stringMeasurements);
+				sprintf_s(stringMeasurements, "%.6f °C\n", measurement);
+				strcpy_s(dataToWrite, stringMeasurements);
 				writeToFile(dataToWrite, file);
 			}
 			else if (!strcmp(pointName, "Input solution pressure") ||
@@ -268,8 +268,8 @@ void ReceivingThread::fileProcessing(char* data) {
 				memcpy(&measurement, data + position, sizeof(double));
 				position = position + sizeof(double);
 				_tcout << " :" << measurement << " atm\n"; // %.7f
-				sprintf(stringMeasurements, "%.7f atm\n", measurement);
-				strcpy(dataToWrite, stringMeasurements);
+				sprintf_s(stringMeasurements, "%.7f atm\n", measurement);
+				strcpy_s(dataToWrite, stringMeasurements);
 				writeToFile(dataToWrite, file);
 			}
 			else if (!strcmp(pointName, "Level")) {
@@ -277,8 +277,8 @@ void ReceivingThread::fileProcessing(char* data) {
 				memcpy(&measurement, data + position, sizeof(int));
 				position = position + sizeof(int);
 				_tcout << " :" << measurement << " %%\n"; // %d
-				sprintf(stringMeasurements, "%d %%\n", measurement);
-				strcpy(dataToWrite, stringMeasurements);
+				sprintf_s(stringMeasurements, "%d %%\n", measurement);
+				strcpy_s(dataToWrite, stringMeasurements);
 				writeToFile(dataToWrite, file);
 			}
 			else if (!strcmp(pointName, "Output solution conductivity")) {
@@ -286,8 +286,8 @@ void ReceivingThread::fileProcessing(char* data) {
 				memcpy(&measurement, data + position, sizeof(double));
 				position = position + sizeof(double);
 				_tcout << " :" << measurement << " S/m\n"; // %.2f
-				sprintf(stringMeasurements, "%.2f S/m\n", measurement);
-				strcpy(dataToWrite, stringMeasurements);
+				sprintf_s(stringMeasurements, "%.2f S/m\n", measurement);
+				strcpy_s(dataToWrite, stringMeasurements);
 				writeToFile(dataToWrite, file);
 			}
 			else if (!strcmp(pointName, "Output solution concentration")) {
@@ -295,18 +295,19 @@ void ReceivingThread::fileProcessing(char* data) {
 				memcpy(&measurement, data + position, sizeof(int));
 				position = position + sizeof(int);
 				_tcout << " :" << measurement << " %%\n"; // %d
-				sprintf(stringMeasurements, "%d %%\n", measurement);
-				strcpy(dataToWrite, stringMeasurements);
+				sprintf_s(stringMeasurements, "%d %%\n", measurement);
+				strcpy_s(dataToWrite, stringMeasurements);
 				writeToFile(dataToWrite, file);
 			}
 		}
 	}
 	_tcout << "\n";
-	strcpy(dataToWrite, "\n");
+	strcpy_s(dataToWrite, "\n");
 	writeToFile(dataToWrite, file);
 
-	wcscpy(CommandBuf, _T("Ready")); //sends the command "Ready" automatically to the server. It will break when "Break" is manually send.
-	ptrDataSentEvent->SetEvent;
+	wcscpy_s(CommandBuf, _T("Ready")); //sends the command "Ready" automatically to the server. It will break when "Break" is manually send.
+	ptrDataSentEvent->SetEvent();
 
 	//return "";
+
 }
